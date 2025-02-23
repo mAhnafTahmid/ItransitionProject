@@ -16,13 +16,16 @@ const AnswerForm = () => {
   useEffect(() => {
     const fetchTemplate = async () => {
       try {
-        const res = await fetch(`/api/templets/templet/${templateId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
-            "Content-Type": "application/json", // Ensure proper content type
-          },
-        }); // Assuming the API endpoint
+        const res = await fetch(
+          `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
+              "Content-Type": "application/json", // Ensure proper content type
+            },
+          }
+        ); // Assuming the API endpoint
         const data = await res.json();
 
         if (res.ok) {
@@ -62,14 +65,17 @@ const AnswerForm = () => {
         templetId: template.id,
         userId: user.id,
       }));
-      const res = await fetch("/api/answers/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(answers),
-      });
+      const res = await fetch(
+        "https://itransitionprojectbackend.onrender.com/api/answers/create",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(answers),
+        }
+      );
 
       const data = await res.json();
       if (res.ok) {

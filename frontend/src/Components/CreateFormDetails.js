@@ -26,7 +26,7 @@ const CreateFormDetails = () => {
 
       try {
         const response = await fetch(
-          `/api/tags/autocomplete?query=${tagQuery}`,
+          `https://itransitionprojectbackend.onrender.com/api/tags/autocomplete?query=${tagQuery}`,
           {
             method: "GET",
             headers: {

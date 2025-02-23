@@ -34,14 +34,17 @@ const BaseForm = () => {
         return;
       }
 
-      const res = await fetch("api/templets/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.replace(/"/g, "")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(questions),
-      });
+      const res = await fetch(
+        "https://itransitionprojectbackend.onrender.com/api/templets/create",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(questions),
+        }
+      );
 
       if (res.ok) {
         toast.success("Form has been created");

@@ -13,13 +13,16 @@ const ShowCreatedQuestions = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const res = await fetch(`/api/templets/templet/${templateId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token.replace(/"/g, "")}`,
-            "Content-Type": "application/json", // Ensure proper content type
-          },
-        });
+        const res = await fetch(
+          `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token.replace(/"/g, "")}`,
+              "Content-Type": "application/json", // Ensure proper content type
+            },
+          }
+        );
         const data = await res.json();
         if (res.ok) {
           setQuestions(data);
@@ -47,14 +50,17 @@ const ShowCreatedQuestions = () => {
 
   const handleEditTemplet = async () => {
     try {
-      const res = await fetch(`/api/templets/update/${templateId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token.replace(/"/g, "")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(questions), // No wrapper
-      });
+      const res = await fetch(
+        `https://itransitionprojectbackend.onrender.com/api/templets/update/${templateId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(questions), // No wrapper
+        }
+      );
       if (res.ok) {
         toast.success("Template updated successfully!");
       } else {

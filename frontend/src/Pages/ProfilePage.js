@@ -19,13 +19,16 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const res = await fetch(`/api/users/templet/${user.id}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token.replace(/"/g, "")}`,
-            "Content-Type": "application/json", // Ensure proper content type
-          },
-        });
+        const res = await fetch(
+          `https://itransitionprojectbackend.onrender.com/api/users/templet/${user.id}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token.replace(/"/g, "")}`,
+              "Content-Type": "application/json", // Ensure proper content type
+            },
+          }
+        );
         const data = await res.json();
         if (res.ok) {
           setTemplates(data?.$values || []);
@@ -53,13 +56,16 @@ const ProfilePage = () => {
   const handleSearch = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/templets/search?query=${search}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token.replace(/"/g, "")}`,
-          "Content-Type": "application/json", // Ensure proper content type
-        },
-      });
+      const res = await fetch(
+        `https://itransitionprojectbackend.onrender.com/api/templets/search?query=${search}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json", // Ensure proper content type
+          },
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         setSearches(data.$values);
@@ -85,14 +91,17 @@ const ProfilePage = () => {
   const handleLike = async (e, template) => {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/users/like/templet`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.replace(/"/g, "")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: user.id, templetId: template.id }),
-      });
+      const res = await fetch(
+        `https://itransitionprojectbackend.onrender.com/api/users/like/templet`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: user.id, templetId: template.id }),
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         const updatedTemplates = templates.map((temp) =>
@@ -112,14 +121,17 @@ const ProfilePage = () => {
 
   const handleComment = async (templateId) => {
     try {
-      const res = await fetch(`/api/comment/create`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.replace(/"/g, "")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ templetId: templateId, comment: userComment }),
-      });
+      const res = await fetch(
+        `https://itransitionprojectbackend.onrender.com/api/comment/create`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ templetId: templateId, comment: userComment }),
+        }
+      );
 
       const data = await res.json();
       if (res.ok) {

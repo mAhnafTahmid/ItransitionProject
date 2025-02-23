@@ -16,7 +16,9 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const response = await fetch("api/templets/top10");
+        const response = await fetch(
+          "https://itransitionprojectbackend.onrender.com/api/templets/top10"
+        );
         if (!response.ok) throw new Error("Failed to fetch templates");
         const data = await response.json();
         setTemplates(data.$values);
@@ -36,7 +38,9 @@ const LandingPage = () => {
 
   const fetchTemplate = async (templateId) => {
     try {
-      const res = await fetch(`/api/templets/templet/${templateId}`);
+      const res = await fetch(
+        `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`
+      );
       const data = await res.json();
 
       if (res.ok) {

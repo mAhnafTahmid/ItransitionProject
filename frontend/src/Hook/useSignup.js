@@ -12,15 +12,18 @@ const useSignup = () => {
       throw new Error("Passwords do not match");
     }
     try {
-      const res = await fetch("/api/users/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          name,
-          password,
-        }),
-      });
+      const res = await fetch(
+        "https://itransitionprojectbackend.onrender.com/api/users/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            name,
+            password,
+          }),
+        }
+      );
 
       const data = await res.json();
 

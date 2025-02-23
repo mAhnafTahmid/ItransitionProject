@@ -13,13 +13,16 @@ const OwnerAnswerViewer = () => {
   useEffect(() => {
     const fetchAnswer = async () => {
       try {
-        const res = await fetch(`/api/answers/${answerId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token.replace(/"/g, "")}`,
-            "Content-Type": "application/json", // Ensure proper content type
-          },
-        });
+        const res = await fetch(
+          `https://itransitionprojectbackend.onrender.com/api/answers/${answerId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token.replace(/"/g, "")}`,
+              "Content-Type": "application/json", // Ensure proper content type
+            },
+          }
+        );
         const data = await res.json();
         if (res.ok) {
           setAnswer(data);
@@ -39,13 +42,16 @@ const OwnerAnswerViewer = () => {
   useEffect(() => {
     const fetchTemplate = async () => {
       try {
-        const res = await fetch(`/api/templets/templet/${templateId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
-            "Content-Type": "application/json", // Ensure proper content type
-          },
-        });
+        const res = await fetch(
+          `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
+              "Content-Type": "application/json", // Ensure proper content type
+            },
+          }
+        );
         const data = await res.json();
         if (res.ok) {
           setTemplate(data);
