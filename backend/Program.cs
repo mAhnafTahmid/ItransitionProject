@@ -20,7 +20,8 @@ builder.Services.AddCors(options =>
             "http://localhost:5173",
             "http://localhost:5189",
             "http://localhost:8080",
-            "http://localhost:3000"
+            "http://localhost:3000",
+            "https://itransitionproject-63ae.onrender.com"
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
