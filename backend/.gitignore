@@ -1,0 +1,38 @@
+# Build and publish outputs
+bin/
+obj/
+out/
+publish/
+TestResults/
+
+# User-specific settings
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and debugging
+logs/
+*.log
+*.tlog
+
+# Environment variables and secrets
+.env
+secrets.json
+
+# Dependency caching
+packages/
+.nuget/
+project.lock.json
+*.nupkg
+*.snupkg
+
+# Resharper and Rider
+*.DotSettings.user
+.idea/
+*.sln.iml
+
+# Visual Studio Code workspace settings
+.vscode/
+
