@@ -1,19 +1,23 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuthContext } from "../Context/AuthContext";
 
 const useSignup = () => {
   const [loading, setLoading] = useState(false);
-  const { setUser } = useAuthContext();
 
-  const signup = async ({ email, name, password, confirmPassword }) => {
+  const signup = async ({
+    email,
+    name,
+    password,
+    confirmPassword,
+    status = "non-admin",
+  }) => {
     setLoading(true);
     if (password !== confirmPassword) {
       throw new Error("Passwords do not match");
     }
     try {
       const res = await fetch(
-        "https://itransitionprojectbackend.onrender.com/api/users/register",
+        `${process.env.REACT_APP_DEV_URL}/api/users/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -21,12 +25,11 @@ const useSignup = () => {
             email,
             name,
             password,
+            status,
           }),
         }
       );
-
       const data = await res.json();
-
       if (res.ok) {
         toast.success("Signed up successfully");
       } else {

@@ -59,7 +59,6 @@ else
 
 var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};Trust Server Certificate=true;";
 
-// builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<TagsCreation>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>

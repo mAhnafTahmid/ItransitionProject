@@ -13,7 +13,6 @@ public static class TempletHelper
             ImageUrl = request.ImageUrl,
             Likes = 0,
 
-            // ✅ Use the UserModel parameter instead of trusting request.UserId
             UserId = user.Id,
             User = user,
 
@@ -22,7 +21,6 @@ public static class TempletHelper
             AccessList = request.AccessList ?? [],
             Tags = tags,
 
-            // Assign only the provided fields
             String1State = request.String1State,
             String1Question = request.String1Question,
 
@@ -100,7 +98,6 @@ public static class TempletHelper
         templet.AccessList = request.AccessList ?? [];
         templet.Tags = tags;
 
-        // ✅ Update dynamic fields
         templet.String1State = request.String1State;
         templet.String1Question = request.String1Question;
 

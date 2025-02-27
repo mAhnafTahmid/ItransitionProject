@@ -7,7 +7,7 @@ export const useQuestionTypeContext = () => {
 };
 
 export const QuestionTypeContextProvider = ({ children }) => {
-  const [questionType, setQuestionType] = useState("text");
+  const [questionType, setQuestionType] = useState("details");
   return (
     <QuestionTypeContext.Provider value={{ questionType, setQuestionType }}>
       {children}

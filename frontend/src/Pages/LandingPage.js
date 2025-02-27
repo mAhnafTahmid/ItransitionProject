@@ -10,14 +10,16 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedTemplate, setExpandedTemplate] = useState(null);
+  const [userComment, setUserComment] = useState("");
   const { setQuestions } = useQuestionsContext();
   const { user } = useAuthContext();
+  const token = localStorage.getItem("authToken");
 
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
         const response = await fetch(
-          "https://itransitionprojectbackend.onrender.com/api/templets/top10"
+          `${process.env.REACT_APP_DEV_URL}/api/templets/top10`
         );
         if (!response.ok) throw new Error("Failed to fetch templates");
         const data = await response.json();
@@ -39,10 +41,9 @@ const LandingPage = () => {
   const fetchTemplate = async (templateId) => {
     try {
       const res = await fetch(
-        `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`
+        `${process.env.REACT_APP_DEV_URL}/api/templets/templet/${templateId}`
       );
       const data = await res.json();
-
       if (res.ok) {
         const { id, userId: _, ...rest } = data;
         setQuestions({ ...rest, userId: user.id });
@@ -62,14 +63,100 @@ const LandingPage = () => {
     navigate("/form");
   };
 
-  const handleAnswerForm = (template) => {
-    navigate(`/answer/form/${template.id}`);
+  const handleAnswerForm = (templateId) => {
+    navigate(`/answer/form/${templateId}`);
+  };
+
+  const handleComment = async (e, templateId) => {
+    e.preventDefault();
+    if (!token) {
+      toast.error("Please login to make a comment");
+      return;
+    }
+    if (userComment.trim() === "") {
+      toast.error("Please enter a comment");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_DEV_URL}/api/comment/create`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            templetId: templateId,
+            comment: userComment.trim(),
+          }),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        const updatedTemplates = templates.map((temp) =>
+          temp.id === templateId
+            ? {
+                ...temp,
+                comments: {
+                  $values: [
+                    ...(temp.comments?.$values || []),
+                    { comment: userComment },
+                  ],
+                },
+              }
+            : temp
+        );
+        setTemplates(updatedTemplates);
+        setUserComment("");
+        toast.success("Comment made successfully");
+      } else {
+        toast.error("Couldn't make comment", data.message);
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.error(error.message);
+      toast.error("Error making comment", error.message);
+    }
+  };
+
+  const handleLike = async (e, templateId) => {
+    e.preventDefault();
+    if (!token && !user) {
+      toast.error("Please login to make a comment");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_DEV_URL}/api/users/like/templet`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: user.id, templetId: templateId }),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        const updatedTemplates = templates.map((temp) =>
+          temp.id === templateId ? { ...temp, likes: data.likes } : temp
+        );
+        setTemplates(updatedTemplates);
+      } else {
+        toast.error("Couldn't like the template", data.message);
+      }
+    } catch (error) {
+      console.error(error.message);
+      toast.error("Error liking the template", error.message);
+    }
   };
 
   return (
     <div className="grid gap sm:grid-cols-2 sm:gap-6 grid-rows-2 min-h-screen">
       {/* Left Side */}
-      <div className="flex flex-col sm:row-span-2 justify-center items-center h-screen sm:h-auto">
+      <div className="flex flex-col sm:row-span-2 justify-center items-center h-screen sm:h-auto pt-10">
         <div className="flex flex-col flex-wrap w-[70%]">
           <h1 className="text-4xl text-violet-600 mb-6">
             Create your own questionnaire
@@ -152,21 +239,51 @@ const LandingPage = () => {
                       ?.map((tag) => tag.name)
                       .join(", ") || "No tags"}
                   </p>
-
-                  {/* Buttons for "Use Template" and "Answer Form" */}
-                  <div className="mt-4 flex gap-4">
+                  <div className="mt-4 flex flex-col gap-4">
                     <button
-                      className="px-4 py-2 bg-violet-600 text-white rounded hover:bg-violet-700"
+                      className="px-4 py-2 bg-violet-600 text-white rounded hover:bg-violet-700 mr-auto"
                       onClick={() => handleUseTemplate(template)}
                     >
                       Use Template
                     </button>
                     <button
-                      className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                      onClick={() => handleAnswerForm(template)}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 mr-auto"
+                      onClick={() => handleAnswerForm(template.id)}
                     >
                       Answer Form
                     </button>
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 mt-3 mr-auto"
+                      onClick={(e) => handleLike(e, template.id)}
+                    >
+                      Like
+                    </button>
+                    <div>
+                      <p className="text-green-400 mt-2">Comments:</p>
+                      {template.comments?.$values?.length > 0 &&
+                        template.comments.$values?.map((comment, index) => {
+                          return (
+                            <div className="mt-2" key={index}>
+                              <p className="text-gray-300">
+                                {index + 1}. {comment.comment}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      <input
+                        type="text"
+                        placeholder="Make a comment"
+                        value={userComment}
+                        onChange={(e) => setUserComment(e.target.value)}
+                        className="w-[50%] mr-3 p-2 border rounded bg-white text-black"
+                      />
+                      <button
+                        onClick={(e) => handleComment(e, template.id)}
+                        className="mt-2 px-4 py-2 border rounded-md border-indigo-700 text-white hover:bg-indigo-700"
+                      >
+                        Add Comment
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

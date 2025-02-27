@@ -35,7 +35,7 @@ const BaseForm = () => {
       }
 
       const res = await fetch(
-        "https://itransitionprojectbackend.onrender.com/api/templets/create",
+        `${process.env.REACT_APP_DEV_URL}/api/templets/create`,
         {
           method: "POST",
           headers: {

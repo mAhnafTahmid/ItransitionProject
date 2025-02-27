@@ -11,5 +11,5 @@ public class CommentCreateRequest
     public required string Comment { get; set; }
 
     [Required]
-    public int TempletId { get; set; }  // The template that the comment belongs to
+    public int TempletId { get; set; }
 }

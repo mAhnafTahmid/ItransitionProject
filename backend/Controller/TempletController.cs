@@ -23,25 +23,18 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // Check if the user exists
         var user = await _context.Users.FindAsync(request.UserId);
         if (user == null)
             return NotFound(new { message = "User not found." });
 
-        var tags = await _tagsCreation.GetOrCreateTagsAsync(request.TagNames); // Injected service
-
-        // Create the template and link the tags
+        var tags = await _tagsCreation.GetOrCreateTagsAsync(request.TagNames);
         var templet = TempletHelper.MapToTempletModel(request, user, tags);
-
-        // Ensure tags reference the new template
         foreach (var tag in tags)
         {
             tag.Templets.Add(templet);
         }
-
         _context.Templets.Add(templet);
         await _context.SaveChangesAsync();
-
         return CreatedAtAction(nameof(CreateTemplet), new { id = templet.Id }, new { message = "Templet created successfully." });
     }
 
@@ -56,7 +49,6 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // Find the existing templet with related tags
         var templet = await _context.Templets
             .Include(t => t.Tags)
             .FirstOrDefaultAsync(t => t.Id == id);
@@ -64,30 +56,20 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
         if (templet == null)
             return NotFound(new { message = "Templet not found." });
 
-        // Ensure the user exists and is the owner of the template
         var user = await _context.Users.FindAsync(request.UserId);
         if (user == null || templet.UserId != user.Id)
             return Unauthorized(new { message = "Unauthorized to update this templet." });
 
-        // Get or create the updated tags
         var updatedTags = await _tagsCreation.GetOrCreateTagsAsync(request.TagNames);
-
-        // Remove old tags that are no longer in the updated list
         templet.Tags.RemoveAll(t => !updatedTags.Contains(t));
-
-        // Add new tags that are missing
         foreach (var tag in updatedTags)
         {
             if (!templet.Tags.Contains(tag))
                 templet.Tags.Add(tag);
         }
-
-        // Update the template properties
         TempletHelper.UpdateTempletModel(templet, request, updatedTags);
-
         _context.Templets.Update(templet);
         await _context.SaveChangesAsync();
-
         return Ok(new { message = "Templet updated successfully." });
     }
 
@@ -105,7 +87,6 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
 
         _context.Templets.Remove(templet);
         await _context.SaveChangesAsync();
-
         return Ok(new { message = "Templet deleted successfully." });
     }
 
@@ -113,12 +94,12 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
     public async Task<IActionResult> GetTop10Templates()
     {
         var topTemplates = await _context.Templets
-            .Include(t => t.Tags)  // Include associated Tags
+            .Include(t => t.Tags)
+            .Include(t => t.Comments)
             .OrderByDescending(t => t.Likes)
             .Take(10)
             .ToListAsync();
 
-        // Project the data to include only the tag id and name
         var result = topTemplates.Select(t => new
         {
             t.Id,
@@ -130,6 +111,11 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
             {
                 tag.Id,
                 tag.Name
+            }).ToList(),
+            Comments = t.Comments.Select(c => new
+            {
+                c.Id,
+                c.Comment
             }).ToList()
         }).ToList();
 
@@ -141,9 +127,9 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
     public async Task<IActionResult> GetTempletById(int id)
     {
         var templet = await _context.Templets
-            .Include(t => t.Tags)       // Include associated Tags
-            .Include(t => t.Comments)   // Include Comments
-            .Include(t => t.Answers)    // Include User Answers
+            .Include(t => t.Tags)
+            .Include(t => t.Comments)
+            .Include(t => t.Answers)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (templet == null)
@@ -160,9 +146,7 @@ public class TempletController(AppDbContext context, TagsCreation tagsCreation) 
         {
             return BadRequest(new { message = "Search query cannot be empty." });
         }
-
-        var searchQuery = query.ToLower(); // Make sure the query is in lowercase for case-insensitivity.
-
+        var searchQuery = query.ToLower();
         var results = await _context.Templets
             .FromSqlRaw("SELECT * FROM \"Templets\" WHERE \"SearchVector\" @@ plainto_tsquery('english', {0})", searchQuery)
             .Take(10)

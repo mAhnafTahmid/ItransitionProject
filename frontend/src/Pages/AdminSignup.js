@@ -33,7 +33,7 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await signup({ email, name, password, confirmPassword });
+      await signup({ email, name, password, confirmPassword, status: "admin" });
       navigate("/login");
     } catch (error) {
       toast.error("Error signing up", error.message);
@@ -47,7 +47,7 @@ const Signup = () => {
         onSubmit={handleSignup}
         className="flex flex-col items-center justify-center flex-wrap bg-black sm:w-1/2 lg:w-[30%] w-[70%] border rounded-2xl border-none shadow-lg shadow-indigo-700"
       >
-        <h1 className="text-white text-2xl py-4">Sign Up Page</h1>
+        <h1 className="text-white text-2xl py-4">Admin Register Page</h1>
         <div className="flex flex-col justify-start items-start px-6 py-3 w-full">
           <label className="py-2 text-xl text-white">Email</label>
           <div className="flex w-full">
@@ -120,7 +120,7 @@ const Signup = () => {
           </div>
         </div>
         <button className="bg-indigo-700 hover:bg-indigo-500 focus:bg-indigo-500 focus:ring-transparent px-3 py-2 border border-none rounded-lg text-white my-4">
-          SignUp
+          Admin SignUp
         </button>
       </form>
     </div>

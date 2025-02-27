@@ -5,22 +5,19 @@ import toast from "react-hot-toast";
 const CreateMcqQuestion = () => {
   const [options, setOptions] = useState(Array(4).fill(""));
   const [newQuestion, setNewQuestion] = useState("");
-  const { questions, setQuestions, questionsCount, setQuestionsCount } =
+  const { setQuestions, questionsCount, setQuestionsCount } =
     useQuestionsContext();
 
   const handleCreateMCQ = () => {
     const checkboxNumber = questionsCount.mcq + 1;
-
     if (!newQuestion || options.some((option) => option.trim() === "")) {
       toast.error("Question and all options must be filled out");
       return;
     }
-
     if (questionsCount.mcq > 3) {
       toast.error("You can only add up to 4 MCQ questions");
       return;
     }
-
     const saveQuestion = {
       [`checkbox${checkboxNumber}State`]: true,
       [`checkbox${checkboxNumber}Question`]: newQuestion,
@@ -29,7 +26,6 @@ const CreateMcqQuestion = () => {
       [`checkbox${checkboxNumber}Option3`]: options[2] || "",
       [`checkbox${checkboxNumber}Option4`]: options[3] || "",
     };
-
     setQuestions((prevQuestions) => ({
       ...prevQuestions,
       ...saveQuestion,
@@ -40,7 +36,6 @@ const CreateMcqQuestion = () => {
       ...prev,
       mcq: prev.mcq + 1,
     }));
-
     toast.success("Your question was added successfully");
     console.log("Saved Question:", saveQuestion);
   };

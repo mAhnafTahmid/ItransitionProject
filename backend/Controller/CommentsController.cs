@@ -25,22 +25,18 @@ public class CommentController(AppDbContext context) : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // Check if the templet exists
         var templet = await _context.Templets.FirstOrDefaultAsync(t => t.Id == request.TempletId);
         if (templet == null)
             return NotFound(new { message = "Template not found." });
 
-        // Create a new comment
         var comment = new CommentModel
         {
             Comment = request.Comment,
             TempletId = request.TempletId,
-            Likes = 0, // Initial likes count set to 0
+            Likes = 0,
             Templet = templet
         };
-
         _context.Comments.Add(comment);
-
         try
         {
             await _context.SaveChangesAsync();

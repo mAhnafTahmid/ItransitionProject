@@ -30,18 +30,16 @@ public class TagController(AppDbContext context) : ControllerBase
         if (string.IsNullOrWhiteSpace(query))
             return BadRequest(new { message = "Query cannot be empty." });
 
-        // Fetch potential matches from the database (matches anywhere in the name)
         var matchingTags = await _context.Tags
-            .Where(t => EF.Functions.ILike(t.Name, $"%{query}%")) // Match anywhere
-            .Select(t => t.Name) // Select only the name
-            .ToListAsync(); // Move results to memory
+            .Where(t => EF.Functions.ILike(t.Name, $"%{query}%"))
+            .Select(t => t.Name)
+            .ToListAsync();
 
-        // Perform ranking in C# (EF Core cannot handle this logic in SQL)
         var sortedTags = matchingTags
-            .OrderByDescending(name => name.StartsWith(query, StringComparison.OrdinalIgnoreCase)) // Prioritize prefix matches
-            .ThenByDescending(name => name.Count(c => query.Contains(c))) // Rank by matching character count
-            .ThenBy(name => name) // Alphabetical order for consistency
-            .Take(5) // Limit results
+            .OrderByDescending(name => name.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+            .ThenByDescending(name => name.Count(c => query.Contains(c)))
+            .ThenBy(name => name)
+            .Take(5)
             .ToList();
 
         return Ok(sortedTags);
@@ -68,7 +66,6 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
             return BadRequest(ModelState);
 
         string hashedPassword = UserPasswordHelper.HashPassword(request.Password);
-
         var newUser = new UserModel
         {
             Name = request.Name,
@@ -76,9 +73,7 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
             Password = hashedPassword,
             Status = request.Status ?? "non-admin"
         };
-
         _context.Users.Add(newUser);
-
         try
         {
             await _context.SaveChangesAsync();
@@ -105,19 +100,15 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // Find the user by email and include related data
         var user = await _context.Users
-            .Include(u => u.Templets)        // ✅ Include related Templets
-            .Include(u => u.LikedTemplets)   // ✅ Include related LikedTemplets
+            .Include(u => u.Templets)
+            .Include(u => u.LikedTemplets)
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user == null || !UserPasswordHelper.VerifyPassword(request.Password, user.Password))
             return Unauthorized(new { message = "Invalid email or password." });
 
-        // Generate JWT Token
         string token = GenerateJwtToken(user);
-
-        // ✅ Return both the token and full user details (excluding password)
         return Ok(new
         {
             token,
@@ -156,15 +147,15 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim("status", user.Status),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Unique Token ID
+            new Claim(ClaimTypes.Role, user.Status),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15), // Token valid for 15 minutes
+            expires: DateTime.UtcNow.AddMinutes(15),
             signingCredentials: credentials
         );
 
@@ -176,40 +167,33 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
     [Authorize]
     public async Task<IActionResult> ToggleLikeTemplet([FromBody] LikedTemplet request)
     {
-        // ✅ Check if user & templet exist
         var user = await _context.Users.FindAsync(request.UserId);
         if (user == null)
         {
             return NotFound(new { message = "User not found." });
         }
-
         var templet = await _context.Templets.FindAsync(request.TempletId);
         if (templet == null)
         {
             return NotFound(new { message = "Templet not found." });
         }
-
-        // ✅ Check if the user already liked the templet
         var existingLike = await _context.UserLikedTemplets
             .FirstOrDefaultAsync(like => like.UserId == request.UserId && like.TempletId == request.TempletId);
 
         if (existingLike != null)
         {
-            // ✅ Unlike (Remove the like and decrement likes count)
             _context.UserLikedTemplets.Remove(existingLike);
-            templet.Likes = Math.Max(0, templet.Likes - 1); // Prevent negative values
+            templet.Likes = Math.Max(0, templet.Likes - 1);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Like removed.", likes = templet.Likes });
         }
         else
         {
-            // ✅ Like (Add a new like and increment likes count)
             var likeEntry = new UserLikedTemplet
             {
                 UserId = request.UserId,
                 TempletId = request.TempletId
             };
-
             _context.UserLikedTemplets.Add(likeEntry);
             templet.Likes += 1;
             await _context.SaveChangesAsync();
@@ -221,10 +205,9 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
     [Authorize]
     public async Task<IActionResult> GetUserTemplets(int userId)
     {
-        // Fetch the user and their templates, but only select the required fields (templateId and name)
         var templates = await _context.Users
-            .Where(t => t.Id == userId) // Filter by userId
-            .SelectMany(t => t.Templets) // Flatten the list of templates
+            .Where(t => t.Id == userId)
+            .SelectMany(t => t.Templets)
             .Select(temp => new
             {
                 temp.Id,
@@ -237,7 +220,7 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
                     c.Comment,
                     c.Likes
                 }).ToList()
-            }) // Select only TemplateId and Name
+            })
             .ToListAsync();
 
         if (templates == null || templates.Count == 0)
@@ -245,6 +228,5 @@ public class UserController(AppDbContext context, IConfiguration configuration) 
 
         return Ok(templates);
     }
-
 }
 

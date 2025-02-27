@@ -6,10 +6,10 @@ import { useParams } from "react-router-dom";
 
 const AnswerForm = () => {
   const { templateId } = useParams();
-  const [template, setTemplate] = useState(null); // State to hold the fetched template
+  const [template, setTemplate] = useState(null);
   const [answers, setAnswers] = useState({});
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
   const { user } = useAuthContext();
   const token = localStorage.getItem("authToken");
 
@@ -17,15 +17,15 @@ const AnswerForm = () => {
     const fetchTemplate = async () => {
       try {
         const res = await fetch(
-          `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`,
+          `${process.env.REACT_APP_DEV_URL}/api/templets/templet/${templateId}`,
           {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
-              "Content-Type": "application/json", // Ensure proper content type
+              Authorization: `Bearer ${token.replace(/"/g, "")}`,
+              "Content-Type": "application/json",
             },
           }
-        ); // Assuming the API endpoint
+        );
         const data = await res.json();
 
         if (res.ok) {
@@ -38,7 +38,7 @@ const AnswerForm = () => {
         toast.error("Error fetching template.", error.message);
         console.error(error.message);
       } finally {
-        setLoading(false); // Stop loading after the API call
+        setLoading(false);
       }
     };
 
@@ -49,7 +49,8 @@ const AnswerForm = () => {
     if (user && template) {
       if (
         template.isPublic ||
-        template.accessList.$values.includes(user.email)
+        template.accessList.$values.includes(user.email) ||
+        user.status === "admin"
       ) {
         setIsAuthorized(true);
       } else {
@@ -66,17 +67,16 @@ const AnswerForm = () => {
         userId: user.id,
       }));
       const res = await fetch(
-        "https://itransitionprojectbackend.onrender.com/api/answers/create",
+        `${process.env.REACT_APP_DEV_URL}/api/answers/create`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(answers),
         }
       );
-
       const data = await res.json();
       if (res.ok) {
         toast.success("Form submitted successfully!");
@@ -90,7 +90,6 @@ const AnswerForm = () => {
   };
 
   if (loading) return <div>Loading...</div>;
-  // if (!isAuthorized) return null;
 
   return (
     <div className="flex flex-col justify-center items-center w-full pt-[70px]">
@@ -104,10 +103,9 @@ const AnswerForm = () => {
 
       <AnswerRenderer template={template} setAnswers={setAnswers} />
 
-      {/* Submit Button */}
       {isAuthorized && (
         <button
-          className="px-4 py-2 bg-blue-500 text-white rounded mt-4"
+          className="px-4 py-2 bg-blue-500 text-white rounded mt-4 mx-auto"
           onClick={handleSubmit}
         >
           Submit

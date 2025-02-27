@@ -16,22 +16,20 @@ const CreateFormDetails = () => {
   const { user } = useAuthContext();
   const token = localStorage.getItem("authToken");
 
-  // Fetch tag suggestions
   useEffect(() => {
     const fetchTags = async () => {
       if (!tagQuery.trim()) {
         setSuggestedTags([]);
         return;
       }
-
       try {
         const response = await fetch(
-          `https://itransitionprojectbackend.onrender.com/api/tags/autocomplete?query=${tagQuery}`,
+          `${process.env.REACT_APP_DEV_URL}/api/tags/autocomplete?query=${tagQuery}`,
           {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
-              "Content-Type": "application/json", // Ensure proper content type
+              Authorization: `Bearer ${token.replace(/"/g, "")}`,
+              "Content-Type": "application/json",
             },
           }
         );
@@ -44,27 +42,23 @@ const CreateFormDetails = () => {
       }
     };
     console.log(tagQuery);
-    // Debounce input (fetch after 300ms delay)
     const debounceTimeout = setTimeout(fetchTags, 300);
     return () => clearTimeout(debounceTimeout);
   }, [tagQuery]);
 
-  // Add tag from input
   const addTag = (tag) => {
     const newTags = tag
       .split(",")
       .map((t) => t.trim())
-      .filter((t) => t && !tags.includes(t)); // Avoid empty & duplicate tags
+      .filter((t) => t && !tags.includes(t));
 
     if (newTags.length > 0) {
       setTags([...tags, ...newTags]);
     }
-
-    setTagQuery(""); // Clear input
-    setSuggestedTags([]); // Hide suggestions
+    setTagQuery("");
+    setSuggestedTags([]);
   };
 
-  // Remove tag
   const removeTag = (tagToRemove) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
@@ -74,7 +68,6 @@ const CreateFormDetails = () => {
       toast.error("Title, Topic, and Description are required fields.");
       return;
     }
-
     const data = {
       title: title,
       userId: user.id,
@@ -82,12 +75,11 @@ const CreateFormDetails = () => {
       isPublic: isPublic,
       accessList: accessList
         .split(",")
-        .map((email) => email.trim()) // Store emails as strings
-        .filter((email) => email.includes("@")), // Validate basic email format
+        .map((email) => email.trim())
+        .filter((email) => email.includes("@")),
       tags: tags,
       description: description,
     };
-
     try {
       setQuestions((prevQuestions) => ({
         ...prevQuestions,
@@ -109,7 +101,6 @@ const CreateFormDetails = () => {
 
   return (
     <div className="min-w-full flex flex-col justify-start items-center pb-20">
-      {/* Title */}
       <div className="w-full flex flex-col justify-start items-center my-2">
         <h1 className="text-xl w-full text-center mb-2">Enter Form Title</h1>
         <input
@@ -121,8 +112,6 @@ const CreateFormDetails = () => {
           required
         />
       </div>
-
-      {/* Topic */}
       <div className="w-full flex flex-col justify-start items-center my-2">
         <h1 className="text-xl w-4/5 text-center mb-2">Enter Topic</h1>
         <input
@@ -134,8 +123,6 @@ const CreateFormDetails = () => {
           required
         />
       </div>
-
-      {/* Is Public Dropdown */}
       <div className="w-full flex flex-col justify-start items-center my-2">
         <h1 className="text-xl w-4/5 text-center mb-2">Visibility</h1>
         <select
@@ -147,8 +134,6 @@ const CreateFormDetails = () => {
           <option value="false">Private</option>
         </select>
       </div>
-
-      {/* Access List (Emails) */}
       <div className="w-full flex flex-col justify-start items-center my-2">
         <h1 className="text-xl w-4/5 text-center mb-2">Access List (Emails)</h1>
         <input
@@ -159,8 +144,6 @@ const CreateFormDetails = () => {
           className="mx-[88px] px-3 w-[95%] py-2 border border-gray-400 rounded hover:border-blue-500 bg-white text-black"
         />
       </div>
-
-      {/* Description */}
       <div className="w-full flex flex-col justify-start items-center my-2">
         <h1 className="text-xl w-4/5 text-center mb-2">Enter Description</h1>
         <textarea
@@ -171,8 +154,6 @@ const CreateFormDetails = () => {
           rows="4"
         />
       </div>
-
-      {/* Tags */}
       <div className="w-full flex flex-col justify-start items-center my-2">
         <h1 className="text-xl w-4/5 text-center mb-2">Enter Tags</h1>
         <input
@@ -226,8 +207,6 @@ const CreateFormDetails = () => {
           ))}
         </div>
       </div>
-
-      {/* Submit Button */}
       <button
         type="button"
         onClick={handleSetDetails}

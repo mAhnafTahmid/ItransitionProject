@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace backend.Model;
 
@@ -22,10 +20,8 @@ public class UserModel
     [Required]
     public required string Status { get; set; } = "non-admin";
 
-    // ✅ One-to-Many (User → Templets)
     public List<TempletModel> Templets { get; set; } = [];
 
-    // ✅ Many-to-Many (User ↔ Liked Templets)
     public List<UserLikedTemplet> LikedTemplets { get; set; } = [];
 }
 

@@ -1,33 +1,16 @@
-import React from "react";
-import toast from "react-hot-toast";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuthContext } from "../Context/AuthContext";
-import { useQuestionsContext } from "../Context/QuestionsContext";
+import useLogout from "../Hook/useLogout";
 
 const Header = () => {
-  const navigate = useNavigate();
-  const { user, setUser } = useAuthContext();
-  const { setQuestions, setQuestionsCount } = useQuestionsContext();
-  const handleLogout = () => {
-    try {
-      localStorage.removeItem("user");
-      localStorage.removeItem("authToken");
-      setUser(null);
-      setQuestions({});
-      setQuestionsCount({
-        mcq: 0,
-        text: 0,
-        string: 0,
-        integer: 0,
-      });
-      toast.success("Logout successful");
-      console.log("Logout successful");
-      navigate("/");
-    } catch (error) {
-      console.log("Unable to logout");
-      toast.error("Unable to logout");
+  const { user } = useAuthContext();
+  const logout = useLogout();
+  useEffect(() => {
+    if (!user) {
+      logout();
     }
-  };
+  }, [user]);
 
   return (
     <div className="navbar bg-base-100 fixed z-50">
@@ -41,10 +24,13 @@ const Header = () => {
           {user ? (
             <div className="flex flex-row">
               <li>
+                {user.status === "admin" && <Link to="/admin">Dashboard</Link>}
+              </li>
+              <li>
                 <Link to="/profile">Profile</Link>
               </li>
               <li>
-                <button onClick={handleLogout}>Logout</button>
+                <button onClick={logout}>Logout</button>
               </li>
             </div>
           ) : (

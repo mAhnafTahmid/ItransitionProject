@@ -9,17 +9,18 @@ const ShowCreatedQuestions = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const token = localStorage.getItem("authToken");
+  const [accessListInput, setAccessListInput] = useState("");
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const res = await fetch(
-          `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`,
+          `${process.env.REACT_APP_DEV_URL}/api/templets/templet/${templateId}`,
           {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token.replace(/"/g, "")}`,
-              "Content-Type": "application/json", // Ensure proper content type
+              "Content-Type": "application/json",
             },
           }
         );
@@ -51,14 +52,14 @@ const ShowCreatedQuestions = () => {
   const handleEditTemplet = async () => {
     try {
       const res = await fetch(
-        `https://itransitionprojectbackend.onrender.com/api/templets/update/${templateId}`,
+        `${process.env.REACT_APP_DEV_URL}/api/templets/update/${templateId}`,
         {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token.replace(/"/g, "")}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(questions), // No wrapper
+          body: JSON.stringify(questions),
         }
       );
       if (res.ok) {
@@ -70,6 +71,14 @@ const ShowCreatedQuestions = () => {
       console.error(error.message);
       toast.error("Error editing template");
     }
+  };
+
+  const handleEditAccessList = () => {
+    const updatedList = accessListInput
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item !== "");
+    handleQuestionChange("accessList", updatedList);
   };
 
   const renderQuestion = (type, num) => {
@@ -122,11 +131,9 @@ const ShowCreatedQuestions = () => {
   if (loading) {
     return <p>Loading...</p>;
   }
-  // flex flex-col justify-center items-center w-full flex-wrap
   return (
     <div className="flex flex-col lg:flex-row justify-between w-full p-10">
       <div className="w-1/2 max-w-2xl flex-col justify-center items-center flex-wrap">
-        {/* Questions Info */}
         <div className="w-full max-w-full lg:max-w-4xl overflow-hidden text-center mt-[50px]">
           <h1 className="text-4xl text-red-500 pt-7 pb-5 px-7 break-words">
             Title:
@@ -148,13 +155,6 @@ const ShowCreatedQuestions = () => {
               className="ml-2 p-2 border rounded text-black bg-white"
             />
           </h1>
-          {/*questions?.imageUrl && (
-            <img
-              src={questions.imageUrl}
-              alt="questions illustration"
-              className="w-96 h-auto mx-auto my-5"
-            />
-          )*/}
           <h1 className="text-4xl text-red-500 pt-7 pb-5 px-7">
             Topic:
             <input
@@ -177,9 +177,32 @@ const ShowCreatedQuestions = () => {
               <option value="Private">Private</option>
             </select>
           </h1>
+          <div className="p-5">
+            <h1 className="text-4xl text-red-500 pt-7 pb-5">
+              Access List:
+              <span className="ml-2 text-white">
+                {questions?.accessList?.$values?.join(", ") ||
+                  "No one has been given access"}
+              </span>
+            </h1>
+
+            <input
+              type="text"
+              value={accessListInput}
+              onChange={(e) => setAccessListInput(e.target.value)}
+              className="p-2 border rounded text-black bg-white w-full mt-2"
+              placeholder="Enter comma-separated email addresses"
+            />
+
+            <button
+              onClick={handleEditAccessList}
+              className="mt-3 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Edit Access List
+            </button>
+          </div>
         </div>
 
-        {/* Render Questions Dynamically */}
         {["string", "text", "int", "checkbox"].map((type) =>
           [1, 2, 3, 4].map((num) => renderQuestion(type, num))
         )}

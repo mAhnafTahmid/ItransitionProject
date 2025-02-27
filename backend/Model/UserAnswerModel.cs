@@ -10,17 +10,14 @@ public class UserAnswerModel
     [Key]
     public int Id { get; set; }
 
-    // ✅ Foreign key for User
     public int UserId { get; set; }
     [ForeignKey("UserId")]
     public UserModel? User { get; set; }
 
-    // ✅ Foreign key for Templet
     public int TempletId { get; set; }
     [ForeignKey("TempletId")]
     public TempletModel? Templet { get; set; }
 
-    // ✅ Up to 4 Single-Line Text Fields
     public bool String1State { get; set; }
     public string? String1Answer { get; set; }
 
@@ -33,7 +30,6 @@ public class UserAnswerModel
     public bool String4State { get; set; }
     public string? String4Answer { get; set; }
 
-    // ✅ Up to 4 Multi-Line Text Fields
     public bool Text1State { get; set; }
     public string? Text1Answer { get; set; }
 
@@ -46,7 +42,6 @@ public class UserAnswerModel
     public bool Text4State { get; set; }
     public string? Text4Answer { get; set; }
 
-    // ✅ Up to 4 Integer Fields
     public bool Int1State { get; set; }
     public int? Int1Answer { get; set; }
 
@@ -59,7 +54,6 @@ public class UserAnswerModel
     public bool Int4State { get; set; }
     public int? Int4Answer { get; set; }
 
-    // ✅ Up to 4 Checkboxes
     public bool Checkbox1State { get; set; }
     public int? Checkbox1Answer { get; set; }
 

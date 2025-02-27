@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using backend.Model;
 using backend.Context;
 using Microsoft.AspNetCore.Authorization;
+using backend.HelperFunctions;
 
 namespace backend.Controller;
 
@@ -21,7 +22,6 @@ public class AnswerController(AppDbContext context) : ControllerBase
             return BadRequest(ModelState);
         }
 
-        // Ensure related entities exist
         var userExists = await _context.Users.AnyAsync(u => u.Id == userAnswer.UserId);
         var templateExists = await _context.Templets.AnyAsync(t => t.Id == userAnswer.TempletId);
 
@@ -42,7 +42,6 @@ public class AnswerController(AppDbContext context) : ControllerBase
         }
         catch (DbUpdateException)
         {
-            // Catch constraint violation exception if duplicate pair exists
             return Conflict(new { message = "An answer for this user and template already exists." });
         }
 
@@ -70,7 +69,7 @@ public class AnswerController(AppDbContext context) : ControllerBase
     {
         var templet = await _context.Templets
             .Where(t => t.Id == templetId)
-            .Include(t => t.Answers) // ✅ Load related answers
+            .Include(t => t.Answers)
             .Select(t => new
             {
                 TempletId = t.Id,
@@ -85,4 +84,19 @@ public class AnswerController(AppDbContext context) : ControllerBase
 
         return Ok(templet.Answers);
     }
+
+    [HttpPut("answer/{id}")]
+    [Authorize]
+    public async Task<IActionResult> UpdateAnswer(int id, [FromBody] UserAnswerModel updatedAnswer)
+    {
+        var answer = await _context.UserAnswers.FindAsync(id);
+        if (answer == null)
+            return NotFound(new { message = "Answer not found." });
+
+        UpdateAnswerHelper.UpdateAnswerFields(answer, updatedAnswer);
+
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Answer updated successfully." });
+    }
+
 }

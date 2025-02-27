@@ -9,7 +9,7 @@ const useLogin = () => {
   const login = async ({ email, password }) => {
     try {
       const res = await fetch(
-        "https://itransitionprojectbackend.onrender.com/api/users/login",
+        `${process.env.REACT_APP_DEV_URL}/api/users/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -19,9 +19,7 @@ const useLogin = () => {
           }),
         }
       );
-
       const data = await res.json();
-
       if (res.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("authToken", JSON.stringify(data.token));

@@ -17,46 +17,46 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         base.OnModelCreating(modelBuilder);
 
-        // ✅ Unique Email for Users
+        //  Unique Email for Users
         modelBuilder.Entity<UserModel>()
             .HasIndex(u => u.Email)
             .IsUnique();
 
-        // ✅ One-to-Many (User → Templets)
+        //  One-to-Many (User → Templets)
         modelBuilder.Entity<UserModel>()
             .HasMany(u => u.Templets)
             .WithOne(t => t.User)
             .HasForeignKey(t => t.UserId);
 
-        // ✅ One-to-Many (Templet → Comments)
+        //  One-to-Many (Templet → Comments)
         modelBuilder.Entity<TempletModel>()
             .HasMany(t => t.Comments)
             .WithOne(c => c.Templet)
             .HasForeignKey(c => c.TempletId);
 
-        // ✅ One-to-Many (Templet → UserAnswers)
+        //  One-to-Many (Templet → UserAnswers)
         modelBuilder.Entity<TempletModel>()
             .HasMany(t => t.Answers)
             .WithOne(a => a.Templet)
             .HasForeignKey(a => a.TempletId);
 
-        // ✅ Many-to-Many (Templet ↔ Tags)
+        //  Many-to-Many (Templet ↔ Tags)
         modelBuilder.Entity<TempletModel>()
             .HasMany(t => t.Tags)
             .WithMany(tg => tg.Templets)
             .UsingEntity(j => j.ToTable("TempletTags"));
 
-        // ✅ Ensure Tags are Unique
+        //  Ensure Tags are Unique
         modelBuilder.Entity<TagsModel>()
             .HasIndex(t => t.Name)
             .IsUnique();
 
-        // ✅ Prevent duplicate likes per user
+        //  Prevent duplicate likes per user
         modelBuilder.Entity<UserLikedTemplet>()
             .HasIndex(ul => new { ul.UserId, ul.TempletId })
             .IsUnique();
 
-        // ✅ Add a Search Vector Column for Full-Text Search
+        //  Add a Search Vector Column for Full-Text Search
         modelBuilder.Entity<TempletModel>()
             .Property(t => t.SearchVector)
             .HasColumnType("tsvector")
@@ -112,10 +112,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 stored: true
             );
 
-
-        // ✅ Create a GIN index with the correct operator class
         modelBuilder.Entity<TempletModel>()
             .HasIndex(t => t.SearchVector)
-            .HasMethod("GIN"); // ✅ Use standard GIN indexing for tsvector
+            .HasMethod("GIN");
     }
 }

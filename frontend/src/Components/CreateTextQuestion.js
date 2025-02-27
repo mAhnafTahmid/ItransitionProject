@@ -15,7 +15,6 @@ const CreateTextQuestion = () => {
           toast.error("You can only add up to text questions");
           return;
         }
-
         const saveQuestion = {
           [`text${textNumber}State`]: true,
           [`text${textNumber}Question`]: newQuestion,
@@ -40,12 +39,12 @@ const CreateTextQuestion = () => {
   return (
     <div className="w-full flex flex-col items-center mb-20">
       <h1 className="text-2xl">Enter the text question</h1>
-      <input
+      <textarea
         type="text"
         value={newQuestion}
         className="w-[95%] px-3 py-2 border border-gray-400 rounded mt-4 mx-[88px] hover:border-blue-500 bg-white text-black"
         onChange={(e) => setNewQuestion(e.target.value)}
-      ></input>
+      ></textarea>
       <button
         type="button"
         onClick={handleTextQuestion}

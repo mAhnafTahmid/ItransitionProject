@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useAuthContext } from "../Context/AuthContext";
 
 const OwnerAnswerViewer = () => {
   const { answerId, templateId } = useParams();
+  const { user } = useAuthContext();
   const [answer, setAnswer] = useState({});
   const [template, setTemplate] = useState({});
   const [loadingAnswer, setLoadingAnswer] = useState(true);
@@ -14,12 +16,12 @@ const OwnerAnswerViewer = () => {
     const fetchAnswer = async () => {
       try {
         const res = await fetch(
-          `https://itransitionprojectbackend.onrender.com/api/answers/${answerId}`,
+          `${process.env.REACT_APP_DEV_URL}/api/answers/${answerId}`,
           {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token.replace(/"/g, "")}`,
-              "Content-Type": "application/json", // Ensure proper content type
+              "Content-Type": "application/json",
             },
           }
         );
@@ -31,7 +33,6 @@ const OwnerAnswerViewer = () => {
         }
       } catch (error) {
         toast.error("Error fetching answer.");
-        console.error(error);
       } finally {
         setLoadingAnswer(false);
       }
@@ -43,12 +44,12 @@ const OwnerAnswerViewer = () => {
     const fetchTemplate = async () => {
       try {
         const res = await fetch(
-          `https://itransitionprojectbackend.onrender.com/api/templets/templet/${templateId}`,
+          `${process.env.REACT_APP_DEV_URL}/api/templets/templet/${templateId}`,
           {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token.replace(/"/g, "")}`, // Attach the token
-              "Content-Type": "application/json", // Ensure proper content type
+              Authorization: `Bearer ${token.replace(/"/g, "")}`,
+              "Content-Type": "application/json",
             },
           }
         );
@@ -60,7 +61,6 @@ const OwnerAnswerViewer = () => {
         }
       } catch (error) {
         toast.error("Error fetching template.");
-        console.error(error);
       } finally {
         setLoadingQuestion(false);
       }
@@ -68,11 +68,35 @@ const OwnerAnswerViewer = () => {
     fetchTemplate();
   }, [templateId]);
 
-  if (loadingAnswer && loadingQuestion && !answer && !template) {
+  const handleUpdate = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_DEV_URL}/api/answers/answer/${answerId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token.replace(/"/g, "")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(answer),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Answer updated successfully!");
+      } else {
+        toast.error(data.message || "Failed to update answer");
+      }
+    } catch (error) {
+      toast.error("Error updating answer.");
+    }
+  };
+
+  if (loadingAnswer || loadingQuestion) {
     return <p>Loading...</p>;
   }
-  console.log(answer);
-  console.log(template);
+
+  const isAdmin = user?.status === "admin";
 
   return (
     <div className="w-full max-w-4xl p-4 border-l border-r rounded-lg shadow mx-auto pt-[80px] min-h-screen">
@@ -88,9 +112,16 @@ const OwnerAnswerViewer = () => {
           template[stateKey] && (
             <div key={num} className="mb-4">
               <p className="font-semibold">{template[questionKey]}</p>
-              <p className="p-2 border rounded bg-gray-100 text-black">
-                {answer[answerKey] || "No response"}
-              </p>
+              <input
+                type="text"
+                className="p-2 border rounded bg-gray-100 text-black w-full"
+                value={answer[answerKey] || ""}
+                onChange={(e) =>
+                  isAdmin &&
+                  setAnswer({ ...answer, [answerKey]: e.target.value })
+                }
+                disabled={!isAdmin}
+              />
             </div>
           )
         );
@@ -106,9 +137,15 @@ const OwnerAnswerViewer = () => {
           template[stateKey] && (
             <div key={num} className="mb-4">
               <p className="font-semibold">{template[questionKey]}</p>
-              <p className="p-2 border rounded bg-gray-100 whitespace-pre-line text-black">
-                {answer[answerKey] || "No response"}
-              </p>
+              <textarea
+                className="p-2 border rounded bg-gray-100 text-black w-full"
+                value={answer[answerKey] || ""}
+                onChange={(e) =>
+                  isAdmin &&
+                  setAnswer({ ...answer, [answerKey]: e.target.value })
+                }
+                disabled={!isAdmin}
+              />
             </div>
           )
         );
@@ -124,9 +161,16 @@ const OwnerAnswerViewer = () => {
           template[stateKey] && (
             <div key={num} className="mb-4">
               <p className="font-semibold">{template[questionKey]}</p>
-              <p className="p-2 border rounded bg-gray-100 text-black">
-                {answer[answerKey] !== null ? answer[answerKey] : "No response"}
-              </p>
+              <input
+                type="number"
+                className="p-2 border rounded bg-gray-100 text-black w-full"
+                value={answer[answerKey] || ""}
+                onChange={(e) =>
+                  isAdmin &&
+                  setAnswer({ ...answer, [answerKey]: e.target.value })
+                }
+                disabled={!isAdmin}
+              />
             </div>
           )
         );
@@ -147,17 +191,21 @@ const OwnerAnswerViewer = () => {
                   const optionKey = `checkbox${num}Option${optNum}`;
                   if (!template[optionKey]) return null;
 
-                  const isSelected = answer[answerKey] === optNum;
-
                   return (
-                    <p
-                      key={optNum}
-                      className={`p-1 ${
-                        isSelected ? "bg-green-400 font-bold" : ""
-                      }`}
-                    >
-                      {template[optionKey]}
-                    </p>
+                    <label key={optNum} className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        name={`checkbox${num}`}
+                        value={optNum}
+                        checked={answer[answerKey] === optNum}
+                        onChange={() =>
+                          isAdmin &&
+                          setAnswer({ ...answer, [answerKey]: optNum })
+                        }
+                        disabled={!isAdmin}
+                      />
+                      <span>{template[optionKey]}</span>
+                    </label>
                   );
                 })}
               </div>
@@ -165,6 +213,15 @@ const OwnerAnswerViewer = () => {
           )
         );
       })}
+
+      {isAdmin && (
+        <button
+          className="mt-4 p-2 bg-blue-500 text-white rounded"
+          onClick={handleUpdate}
+        >
+          Update
+        </button>
+      )}
     </div>
   );
 };

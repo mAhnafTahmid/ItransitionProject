@@ -15,7 +15,6 @@ const CreateIntQuestion = () => {
           toast.error("You can only add up to 4 single line questions");
           return;
         }
-
         const saveQuestion = {
           [`int${intNumber}State`]: true,
           [`int${intNumber}Question`]: newQuestion,
@@ -37,6 +36,7 @@ const CreateIntQuestion = () => {
       console.log("Error adding question", error.message);
     }
   };
+
   return (
     <div className="w-full flex flex-col items-center mb-20">
       <h1 className="text-2xl">Enter the integer question</h1>

@@ -3,10 +3,12 @@ import toast from "react-hot-toast";
 import { useAuthContext } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useQuestionsContext } from "../Context/QuestionsContext";
+import useLogout from "../Hook/useLogout";
 
 const ProfilePage = () => {
   const [search, setSearch] = useState("");
   const [userComment, setUserComment] = useState("");
+  const [adminComment, setAdminComment] = useState("");
   const [searches, setSearches] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [expandedTemplate, setExpandedTemplate] = useState(null);
@@ -15,17 +17,18 @@ const ProfilePage = () => {
   const token = localStorage.getItem("authToken");
   const { user } = useAuthContext();
   const navigate = useNavigate();
+  const logout = useLogout();
 
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
         const res = await fetch(
-          `https://itransitionprojectbackend.onrender.com/api/users/templet/${user.id}`,
+          `${process.env.REACT_APP_DEV_URL}/api/users/templet/${user.id}`,
           {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token.replace(/"/g, "")}`,
-              "Content-Type": "application/json", // Ensure proper content type
+              "Content-Type": "application/json",
             },
           }
         );
@@ -33,13 +36,12 @@ const ProfilePage = () => {
         if (res.ok) {
           setTemplates(data?.$values || []);
         } else {
-          // toast.error("Couldn't fetch templates", data.message);
           console.error("Couldn't fetch templates", data.message);
         }
       } catch (error) {
         toast.error("Error fetching templates", error.message);
         console.error(error.message);
-        navigate("/");
+        logout();
       }
     };
     fetchTemplates();
@@ -57,12 +59,12 @@ const ProfilePage = () => {
     e.preventDefault();
     try {
       const res = await fetch(
-        `https://itransitionprojectbackend.onrender.com/api/templets/search?query=${search}`,
+        `${process.env.REACT_APP_DEV_URL}/api/templets/search?query=${search}`,
         {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token.replace(/"/g, "")}`,
-            "Content-Type": "application/json", // Ensure proper content type
+            "Content-Type": "application/json",
           },
         }
       );
@@ -92,7 +94,7 @@ const ProfilePage = () => {
     e.preventDefault();
     try {
       const res = await fetch(
-        `https://itransitionprojectbackend.onrender.com/api/users/like/templet`,
+        `${process.env.REACT_APP_DEV_URL}/api/users/like/templet`,
         {
           method: "POST",
           headers: {
@@ -119,20 +121,24 @@ const ProfilePage = () => {
     }
   };
 
-  const handleComment = async (templateId) => {
+  const handleComment = async (e, type, templateId) => {
+    e.preventDefault();
+    const newComment = type === "user" ? userComment : adminComment;
     try {
       const res = await fetch(
-        `https://itransitionprojectbackend.onrender.com/api/comment/create`,
+        `${process.env.REACT_APP_DEV_URL}/api/comment/create`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token.replace(/"/g, "")}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ templetId: templateId, comment: userComment }),
+          body: JSON.stringify({
+            templetId: templateId,
+            comment: newComment,
+          }),
         }
       );
-
       const data = await res.json();
       if (res.ok) {
         const updatedTemplates = templates.map((temp) =>
@@ -142,7 +148,7 @@ const ProfilePage = () => {
                 comments: {
                   $values: [
                     ...(temp.comments?.$values || []),
-                    { comment: userComment },
+                    { comment: newComment },
                   ],
                 },
               }
@@ -167,14 +173,15 @@ const ProfilePage = () => {
       <div className="flex flex-col flex-grow w-full sm:w-[70%]">
         <div className="flex flex-col items-start ml-auto w-full sm:w-[80%]">
           <h1 className="text-[80px] text-purple-700">
-            Welcome <span className="text-[80px] text-white">{user?.name}</span>
+            Profile Page of{" "}
+            <span className="text-[80px] text-white">{user?.name}</span>
           </h1>
           <h2 className="text-3xl mt-16 text-indigo-600">
             Create your own form now!
           </h2>
           <button
             onClick={() => navigate("/form")}
-            className="w-[120px] my-8 py-2 border border-white text-white"
+            className="w-[120px] my-8 py-2 border border-white text-white hover:bg-purple-700 hover:border-purple-700"
           >
             Create Form
           </button>
@@ -193,11 +200,13 @@ const ProfilePage = () => {
                   className="text-xl text-white cursor-pointer"
                   onClick={() => handleToggleTemplate(template.id)}
                 >
-                  {template.title}
+                  Title: {template.title}
                 </h3>
                 {expandedTemplate === template.id && (
                   <div className="mt-3">
-                    <p className="text-gray-300">{template.description}</p>
+                    <p className="text-gray-300">
+                      Description: {template.description}
+                    </p>
                     <p className="text-indigo-400">Likes: {template.likes}</p>
                     <button
                       onClick={() => navigate(`/edit/form/${template.id}`)}
@@ -224,7 +233,7 @@ const ProfilePage = () => {
                       className="w-[50%] mr-3 p-2 border rounded bg-white text-black"
                     />
                     <button
-                      onClick={() => handleComment(template.id)}
+                      onClick={(e) => handleComment(e, "user", template.id)}
                       className="mt-2 px-4 py-2 border rounded-md border-indigo-700 text-white hover:bg-indigo-700"
                     >
                       Add Comment
@@ -272,23 +281,48 @@ const ProfilePage = () => {
                     className="text-xl text-white cursor-pointer"
                     onClick={() => handleToggleItem(item.id)}
                   >
-                    {item.title}
+                    Title: {item.title}
                   </h3>
                   {expandedItem === item.id && (
                     <div className="mt-3">
-                      <p className="text-gray-300">{item.description}</p>
+                      <p className="text-gray-300">
+                        Description: {item.description}
+                      </p>
                       <p className="text-indigo-400 mb-3">
                         Likes: {item.likes}
                       </p>
+                      <input
+                        type="text"
+                        placeholder="Make a comment"
+                        value={adminComment}
+                        onChange={(e) => setAdminComment(e.target.value)}
+                        className="w-[50%] mr-3 p-2 border rounded bg-white text-black mb-3"
+                      />
+                      <button
+                        onClick={(e) => handleComment(e, "admin", item.id)}
+                        className="mt-2 px-4 py-2 border rounded-md border-indigo-700 text-white hover:bg-indigo-700 mb-3"
+                      >
+                        Add Comment
+                      </button>
                       <button
                         className="px-4 py-2 mr-4 bg-violet-600 text-white rounded hover:bg-violet-700"
                         onClick={() => handleUseTemplate(item)}
                       >
                         Use Template
                       </button>
+                      {user.status === "admin" && (
+                        <div>
+                          <button
+                            onClick={() => navigate(`/edit/form/${item.id}`)}
+                            className="mt-2 px-4 py-2 border border-indigo-500 bg-indigo-500 text-white hover:bg-indigo-900 mr-3 rounded-md"
+                          >
+                            View Template
+                          </button>
+                        </div>
+                      )}
                       <button
                         onClick={() => handleAnswerForm(item)}
-                        className="px-4 py-2 mr-4 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                        className="px-4 py-2 mr-4 bg-green-500 text-white rounded hover:bg-green-700"
                       >
                         Answer Form
                       </button>

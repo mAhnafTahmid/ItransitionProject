@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuestionsContext } from "../Context/QuestionsContext";
 
 const ViewCreatedQuestions = () => {
   const { questions, setQuestions } = useQuestionsContext();
+  const [accessListInput, setAccessListInput] = useState("");
 
   const handleQuestionChange = (field, value) => {
     setQuestions((prev) => ({
@@ -11,10 +12,17 @@ const ViewCreatedQuestions = () => {
     }));
   };
 
+  const handleEditAccessList = () => {
+    const updatedList = accessListInput
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item !== "");
+    handleQuestionChange("accessList", updatedList);
+  };
+
   const renderQuestion = (type, num) => {
     const stateKey = `${type}${num}State`;
     const questionKey = `${type}${num}Question`;
-
     if (questions[stateKey]) {
       return (
         <div key={`${type}${num}`} className="my-5 w-full text-center">
@@ -58,7 +66,6 @@ const ViewCreatedQuestions = () => {
 
   return (
     <div className="flex flex-col justify-center items-center w-full flex-wrap">
-      {/* Questions Info */}
       <div className="w-full max-w-full lg:max-w-4xl overflow-hidden text-center">
         <h1 className="text-4xl text-red-500 pt-7 pb-5 px-7 break-words">
           Title:
@@ -80,13 +87,6 @@ const ViewCreatedQuestions = () => {
             className="ml-2 p-2 border rounded text-black bg-white"
           />
         </h1>
-        {questions?.ImageUrl && (
-          <img
-            src={questions.ImageUrl}
-            alt="questions illustration"
-            className="w-96 h-auto mx-auto my-5"
-          />
-        )}
         <h1 className="text-4xl text-red-500 pt-7 pb-5 px-7">
           Topic:
           <input
@@ -109,9 +109,32 @@ const ViewCreatedQuestions = () => {
             <option value="Private">Private</option>
           </select>
         </h1>
+        <div className="p-5">
+          <h1 className="text-4xl text-red-500 pt-7 pb-5">
+            Access List:
+            <span className="ml-2 text-white">
+              {questions?.accessList?.$values?.join(", ") ||
+                "No one has been given access"}
+            </span>
+          </h1>
+
+          <input
+            type="text"
+            value={accessListInput}
+            onChange={(e) => setAccessListInput(e.target.value)}
+            className="p-2 border rounded text-black bg-white w-full mt-2"
+            placeholder="Enter comma-separated email addresses"
+          />
+
+          <button
+            onClick={handleEditAccessList}
+            className="mt-3 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Edit Access List
+          </button>
+        </div>
       </div>
 
-      {/* Render Questions Dynamically */}
       {["string", "text", "int", "checkbox"].map((type) =>
         [1, 2, 3, 4].map((num) => renderQuestion(type, num))
       )}
