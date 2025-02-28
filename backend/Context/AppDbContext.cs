@@ -26,19 +26,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<UserModel>()
             .HasMany(u => u.Templets)
             .WithOne(t => t.User)
-            .HasForeignKey(t => t.UserId);
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         //  One-to-Many (Templet → Comments)
         modelBuilder.Entity<TempletModel>()
             .HasMany(t => t.Comments)
             .WithOne(c => c.Templet)
-            .HasForeignKey(c => c.TempletId);
+            .HasForeignKey(c => c.TempletId)
+            .OnDelete(DeleteBehavior.Cascade);
+
 
         //  One-to-Many (Templet → UserAnswers)
         modelBuilder.Entity<TempletModel>()
             .HasMany(t => t.Answers)
             .WithOne(a => a.Templet)
-            .HasForeignKey(a => a.TempletId);
+            .HasForeignKey(a => a.TempletId)
+            .OnDelete(DeleteBehavior.Cascade);
+
 
         //  Many-to-Many (Templet ↔ Tags)
         modelBuilder.Entity<TempletModel>()
